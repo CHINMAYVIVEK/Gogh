@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
 # ====================CONFIG THIS =============================== #
-export COLOR_01="#191622"           # HOST
-export COLOR_02="#E96379"           # SYNTAX_STRING
-export COLOR_03="#67e480"           # COMMAND
-export COLOR_04="#E89E64"           # COMMAND_COLOR2
-export COLOR_05="#78D1E1"           # PATH
-export COLOR_06="#988BC7"           # SYNTAX_VAR
-export COLOR_07="#FF79C6"           # PROMP
-export COLOR_08="#ABB2BF"           #
+export COLOR_01="#575F66"           # HOST
+export COLOR_02="#F51818"           # SYNTAX_STRING
+export COLOR_03="#86B300"           # COMMAND
+export COLOR_04="#F2AE49"           # COMMAND_COLOR2
+export COLOR_05="#399EE6"           # PATH
+export COLOR_06="#A37ACC"           # SYNTAX_VAR
+export COLOR_07="#4CBF99"           # PROMP
+export COLOR_08="#FAFAFA"           #
 
-export COLOR_09="#000000"           #
-export COLOR_10="#E96379"           # COMMAND_ERROR
-export COLOR_11="#67e480"           # EXEC
-export COLOR_12="#E89E64"           #
-export COLOR_13="#78D1E1"           # FOLDER
-export COLOR_14="#988BC7"           #
-export COLOR_15="#FF79C6"           #
-export COLOR_16="#ffffff"           #
+export COLOR_09="#8A9199"           #
+export COLOR_10="#F51818"           # COMMAND_ERROR
+export COLOR_11="#86B300"           # EXEC
+export COLOR_12="#F2AE49"           #
+export COLOR_13="#399EE6"           # FOLDER
+export COLOR_14="#A37ACC"           #
+export COLOR_15="#4CBF99"           #
+export COLOR_16="#FAFAFA"           #
 
-export BACKGROUND_COLOR="#191622"   # Background Color
-export FOREGROUND_COLOR="#ABB2BF"   # Text
-export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor
-export PROFILE_NAME="Omni"
+export BACKGROUND_COLOR="#FAFAFA"   # Background Color
+export FOREGROUND_COLOR="#575F66"   # Foreground Color (text)
+export CURSOR_COLOR="#FF9940" # Cursor color
+export PROFILE_NAME="Ayu Light"
 # =============================================================== #
 
 

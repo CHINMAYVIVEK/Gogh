@@ -122,7 +122,9 @@ gnome_color () {
   BB=${1:3:2}
   CC=${1:5:2}
 
-  echo "#${AA}${AA}${BB}${BB}${CC}${CC}"
+  if [[ -n "${AA:-}" ]]; then
+    echo "#${AA}${AA}${BB}${BB}${CC}${CC}"
+  fi
 }
 
 hexToDec () {
@@ -237,6 +239,9 @@ set_theme() {
   dset visible-name                    "'${PROFILE_NAME}'"
   dset background-color                "'${BACKGROUND_COLOR}'"
   dset foreground-color                "'${FOREGROUND_COLOR}'"
+  dset cursor-colors-set               "true"
+  dset cursor-background-color         "'${CURSOR_COLOR}'"
+  dset cursor-foreground-color         "'${BACKGROUND_COLOR}'"
 
   if [[ -n "${HIGHLIGHT_BG_COLOR:-}" ]]; then
     dset   highlight-colors-set        "true"
@@ -362,6 +367,67 @@ apply_cygwin() {
   echo "Done - please reopen your Cygwin terminal to see the changes"
 }
 
+apply_alacritty() {
+  # |
+  # | Applying values on Alacritty
+  # | ===========================================
+
+  json_str="\
+  { \
+    \"colors\": \
+    {\
+      \"primary\":\
+      {\
+        \"background\": \"$BACKGROUND_COLOR\",\
+        \"foreground\": \"$FOREGROUND_COLOR\"\
+      },\
+      \"normal\":\
+      {\
+        \"black\": \"$COLOR_01\",\
+        \"red\": \"$COLOR_02\",\
+        \"green\": \"$COLOR_03\",\
+        \"yellow\":\"$COLOR_04\",\
+        \"blue\":\"$COLOR_05\",\
+        \"magenta\": \"$COLOR_06\",\
+        \"cyan\":\"$COLOR_07\",\
+        \"white\": \"$COLOR_08\"\
+      },\
+      \"bright\":\
+      {\
+        \"black\":\"$COLOR_09\",\
+        \"red\":\"$COLOR_10\",\
+        \"green\":\"$COLOR_11\",\
+        \"yellow\": \"$COLOR_12\",\
+        \"blue\": \"$COLOR_13\",\
+        \"magenta\":\"$COLOR_14\",\
+        \"cyan\": \"$COLOR_15\",\
+        \"white\":\"$COLOR_16\"\
+      } \
+    }\
+  }"
+
+  SCRIPT_PATH="${SCRIPT_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+  PARENT_PATH="$(dirname "${SCRIPT_PATH}")"
+
+  # Allow developer to change url to forked url for easier testing
+  # IMPORTANT: Make sure you export this variable if your main shell is not bash
+  BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Mayccoll/Gogh/master"}
+
+
+  if [[ -e "${SCRIPT_PATH}/apply-alacritty.py" ]]; then
+    python3 "${SCRIPT_PATH}/apply-alacritty.py" "$json_str"
+  else
+    if [[ "$(uname)" = "Darwin" ]]; then
+      # OSX ships with curl and ancient bash
+      python3 -c "$(curl -so- "${BASE_URL}/apply-alacritty.py")" "$json_str"
+    else
+      # Linux ships with wget
+      python3 -c "$(wget -qO- "${BASE_URL}/apply-alacritty.py")" "$json_str"
+    fi
+  fi
+
+}
+
 apply_darwin() {
   # |
   # | Applying values on iTerm2
@@ -443,6 +509,7 @@ apply_gtk() {
 
     BACKGROUND_COLOR=$(gnome_color "$BACKGROUND_COLOR")
     FOREGROUND_COLOR=$(gnome_color "$FOREGROUND_COLOR")
+    CURSOR_COLOR=$(gnome_color "$CURSOR_COLOR")
     HIGHLIGHT_BG_COLOR=$(gnome_color "$HIGHLIGHT_BG_COLOR")
     HIGHLIGHT_FG_COLOR=$(gnome_color "$HIGHLIGHT_FG_COLOR")
     COLOR_01=$(gnome_color         "$COLOR_01")
@@ -705,6 +772,10 @@ case "${TERMINAL}" in
 
   xfce4-terminal )
     apply_xfce4-terminal
+    ;;
+
+  alacritty )
+    apply_alacritty
     ;;
 
   * )

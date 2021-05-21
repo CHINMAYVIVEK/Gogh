@@ -1,9 +1,13 @@
 Gogh
 ====
 
-![elementary](https://raw.githubusercontent.com/Mayccoll/Gogh/master/images/gogh/Gogh-icons.png)
+<div align="center">
+  <img src="https://raw.githubusercontent.com/Mayccoll/Gogh/master/images/gogh/Gogh-logo-dark.png" alt="Gogh" width="100%">
+</div>
 
-## :small_orange_diamond: [Visit the Website](http://mayccoll.github.io/Gogh) :small_orange_diamond:
+<div align="center">
+  :small_blue_diamond: <a href="http://mayccoll.github.io/Gogh"> Visit the Website </a> :small_blue_diamond:
+</div>
 
 ## Color Scheme for Gnome Terminal, Pantheon Terminal, Tilix, and XFCE4 Terminal
 
@@ -71,6 +75,8 @@ export TERMINAL=gnome-terminal
 ## 🎨 [Themes](https://mayccoll.github.io/Gogh/)
 
 We have lots of themes. Check them out [here](https://mayccoll.github.io/Gogh/)!
+
+also all themes in json format: https://raw.githubusercontent.com/Mayccoll/Gogh/master/data/themes.json
 
 <br/>
 <br/>
@@ -152,7 +158,16 @@ There is no blue without yellow and without orange.
 - [Hipertextual](https://hipertextual.com/archivo/2014/11/4bit/)
 - [MuyLinux](https://www.muylinux.com/2015/06/06/ping-91)
 - [Reddit - elementaryos](https://www.reddit.com/r/elementaryos/comments/3ivnb7/how_to_change_terminals_colors/)
+- [dev.to](https://dev.to/mayccoll/color-scheme-for-your-terminal-1pea)
 
 ## Themes in `json` format
 
-https://gist.github.com/rapgru/09b449285231d18f4e4536c5f48fc927
+In your terminal type:
+
+```bash
+bash tools/generate.sh
+```
+
+this generates a json file located at `gh-pages/data/themes.json`
+
+orginal script source: https://gist.github.com/rapgru/09b449285231d18f4e4536c5f48fc927

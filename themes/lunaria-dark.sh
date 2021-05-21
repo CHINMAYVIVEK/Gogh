@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
 # ====================CONFIG THIS =============================== #
-export COLOR_01="#191622"           # HOST
-export COLOR_02="#E96379"           # SYNTAX_STRING
-export COLOR_03="#67e480"           # COMMAND
-export COLOR_04="#E89E64"           # COMMAND_COLOR2
-export COLOR_05="#78D1E1"           # PATH
-export COLOR_06="#988BC7"           # SYNTAX_VAR
-export COLOR_07="#FF79C6"           # PROMP
-export COLOR_08="#ABB2BF"           #
+export COLOR_01="#36464E"           # Black
+export COLOR_02="#846560"           # Red
+export COLOR_03="#809984"           # Green
+export COLOR_04="#A79A79"           # Yellow
+export COLOR_05="#555673"           # Blue
+export COLOR_06="#866C83"           # Magenta
+export COLOR_07="#7E98B4"           # Cyan
+export COLOR_08="#CACED8"           # Light gray
 
-export COLOR_09="#000000"           #
-export COLOR_10="#E96379"           # COMMAND_ERROR
-export COLOR_11="#67e480"           # EXEC
-export COLOR_12="#E89E64"           #
-export COLOR_13="#78D1E1"           # FOLDER
-export COLOR_14="#988BC7"           #
-export COLOR_15="#FF79C6"           #
-export COLOR_16="#ffffff"           #
+export COLOR_09="#404F56"           # Dark gray
+export COLOR_10="#BB928B"           # Light Red
+export COLOR_11="#BFDCC2"           # Light Green
+export COLOR_12="#F1DFB6"           # Light Yellow
+export COLOR_13="#777798"           # Light Blue
+export COLOR_14="#BF9DB9"           # Light Magenta
+export COLOR_15="#BDDCFF"           # Light Cyan
+export COLOR_16="#DFE2ED"           # White
 
-export BACKGROUND_COLOR="#191622"   # Background Color
-export FOREGROUND_COLOR="#ABB2BF"   # Text
-export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor
-export PROFILE_NAME="Omni"
+export BACKGROUND_COLOR="#36464E"   # Background Color
+export FOREGROUND_COLOR="#CACED8"   # Foreground Color (text)
+export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor color
+export PROFILE_NAME="Lunaria Dark"
 # =============================================================== #
 
 

@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
 # ====================CONFIG THIS =============================== #
-export COLOR_01="#3F3F54"           # Black
-export COLOR_02="#f60055"           # Red
-export COLOR_03="#06c993"           # Green
-export COLOR_04="#9700be"           # Yellow
-export COLOR_05="#f69154"           # Blue
-export COLOR_06="#ec89cb"           # Magenta
-export COLOR_07="#60ADEC"           # Cyan
-export COLOR_08="#ABB2BF"           # Light gray
+export COLOR_01="#363537"           # Dark Gray
+export COLOR_02="#FF6188"           # Monokai Pro Red
+export COLOR_03="#A9DC76"           # Monokai Pro Green
+export COLOR_04="#FFD866"           # Monokai Pro Yellow
+export COLOR_05="#FC9867"           # Monokai Pro Orange
+export COLOR_06="#AB9DF2"           # Monokai Pro Magenta
+export COLOR_07="#78DCE8"           # Monokai Pro Cyan
+export COLOR_08="#FDF9F3"           # Light Gray
 
-export COLOR_09="#959DCB"           # Dark gray
-export COLOR_10="#f60055"           # Light Red
-export COLOR_11="#06c993"           # Light Green
-export COLOR_12="#9700be"           # Light Yellow
-export COLOR_13="#f69154"           # Light Blue
-export COLOR_14="#ec89cb"           # Light Magenta
-export COLOR_15="#00dded"           # Light Cyan
-export COLOR_16="#ffffff"           # White
+export COLOR_09="#908E8F"           # Dark Gray
+export COLOR_10="#FF6188"           # Monokai Pro Red
+export COLOR_11="#A9DC76"           # Monokai Pro Green
+export COLOR_12="#FFD866"           # Monokai Pro Yellow
+export COLOR_13="#FC9867"           # Monokai Pro Orange
+export COLOR_14="#AB9DF2"           # Monokai Pro Magenta
+export COLOR_15="#78DCE8"           # Monokai Pro Cyan
+export COLOR_16="#FDF9F3"           # Light Gray
 
-export BACKGROUND_COLOR="#222235"   # Background Color
-export FOREGROUND_COLOR="#ffffff"   # Foreground Color (text)
+export BACKGROUND_COLOR="#363537"   # Background Color
+export FOREGROUND_COLOR="#FDF9F3"   # Foreground Color (text)
 export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor color
-export PROFILE_NAME="Sweet Terminal"
+export PROFILE_NAME="Monokai Pro"
 # =============================================================== #
 
 

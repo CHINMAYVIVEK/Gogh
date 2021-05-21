@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
 # ====================CONFIG THIS =============================== #
-export COLOR_01="#191622"           # HOST
-export COLOR_02="#E96379"           # SYNTAX_STRING
-export COLOR_03="#67e480"           # COMMAND
-export COLOR_04="#E89E64"           # COMMAND_COLOR2
-export COLOR_05="#78D1E1"           # PATH
-export COLOR_06="#988BC7"           # SYNTAX_VAR
-export COLOR_07="#FF79C6"           # PROMP
-export COLOR_08="#ABB2BF"           #
+export COLOR_01="#020202"           # Black
+export COLOR_02="#CD3232"           # Red
+export COLOR_03="#00BC00"           # Green
+export COLOR_04="#A5A900"           # Yellow
+export COLOR_05="#0752A8"           # Blue
+export COLOR_06="#BC05BC"           # Magenta
+export COLOR_07="#0598BC"           # Cyan
+export COLOR_08="#343434"           # Light gray
 
-export COLOR_09="#000000"           #
-export COLOR_10="#E96379"           # COMMAND_ERROR
-export COLOR_11="#67e480"           # EXEC
-export COLOR_12="#E89E64"           #
-export COLOR_13="#78D1E1"           # FOLDER
-export COLOR_14="#988BC7"           #
-export COLOR_15="#FF79C6"           #
-export COLOR_16="#ffffff"           #
+export COLOR_09="#5E5E5E"           # Dark gray
+export COLOR_10="#cd3333"           # Light Red
+export COLOR_11="#1BCE1A"           # Light Green
+export COLOR_12="#ADBB5B"           # Light Yellow
+export COLOR_13="#0752A8"           # Light Blue
+export COLOR_14="#C451CE"           # Light Magenta
+export COLOR_15="#52A8C7"           # Light Cyan
+export COLOR_16="#A6A3A6"           # White
 
-export BACKGROUND_COLOR="#191622"   # Background Color
-export FOREGROUND_COLOR="#ABB2BF"   # Text
-export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor
-export PROFILE_NAME="Omni"
+export BACKGROUND_COLOR="#f9f9f9"   # Background Color
+export FOREGROUND_COLOR="#020202"   # Foreground Color (text)
+export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor color
+export PROFILE_NAME="VS Code Light+"
 # =============================================================== #
 
 

@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
 # ====================CONFIG THIS =============================== #
-export COLOR_01="#191622"           # HOST
-export COLOR_02="#E96379"           # SYNTAX_STRING
-export COLOR_03="#67e480"           # COMMAND
-export COLOR_04="#E89E64"           # COMMAND_COLOR2
-export COLOR_05="#78D1E1"           # PATH
-export COLOR_06="#988BC7"           # SYNTAX_VAR
-export COLOR_07="#FF79C6"           # PROMP
-export COLOR_08="#ABB2BF"           #
+export COLOR_01="#282C34"           # Black
+export COLOR_02="#ED254E"           # Red
+export COLOR_03="#71F79F"           # Green
+export COLOR_04="#F9DC5C"           # Yellow
+export COLOR_05="#7CB7FF"           # Blue
+export COLOR_06="#C74DED"           # Magenta
+export COLOR_07="#00C1E4"           # Cyan
+export COLOR_08="#DCDFE4"           # Light gray
 
-export COLOR_09="#000000"           #
-export COLOR_10="#E96379"           # COMMAND_ERROR
-export COLOR_11="#67e480"           # EXEC
-export COLOR_12="#E89E64"           #
-export COLOR_13="#78D1E1"           # FOLDER
-export COLOR_14="#988BC7"           #
-export COLOR_15="#FF79C6"           #
-export COLOR_16="#ffffff"           #
+export COLOR_09="#282C34"           # Dark gray
+export COLOR_10="#ED254E"           # Light Red
+export COLOR_11="#71F79F"           # Light Green
+export COLOR_12="#F9DC5C"           # Light Yellow
+export COLOR_13="#7CB7FF"           # Light Blue
+export COLOR_14="#C74DED"           # Light Magenta
+export COLOR_15="#00C1E4"           # Light Cyan
+export COLOR_16="#DCDFE4"           # White
 
-export BACKGROUND_COLOR="#191622"   # Background Color
-export FOREGROUND_COLOR="#ABB2BF"   # Text
-export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor
-export PROFILE_NAME="Omni"
+export BACKGROUND_COLOR="#282C34"   # Background Color
+export FOREGROUND_COLOR="#C3C7D1"   # Foreground Color (text)
+export CURSOR_COLOR="$FOREGROUND_COLOR" # Cursor color
+export PROFILE_NAME="sweet-eliverlara"
 # =============================================================== #
 
 
