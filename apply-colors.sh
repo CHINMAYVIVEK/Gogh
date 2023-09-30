@@ -39,7 +39,7 @@ GLOBAL_VAR_CLEANUP() {
   unset PROFILE_NAME
 }
 
-# Note: Since all scripts gets invoked in a subshell the traps from the parent shell 
+# Note: Since all scripts gets invoked in a subshell the traps from the parent shell
 # will not get inherited. Hence traps defined in gogh.sh and print-themes.sh will still trigger
 trap 'GLOBAL_VAR_CLEANUP; trap - EXIT' EXIT HUP INT QUIT PIPE TERM
 
@@ -53,7 +53,9 @@ if [[ -z "${TERMINAL:-}" ]]; then
   # | Check for the terminal name (depening on os)
   # | ===========================================
   OS="$(uname)"
-  if [[ "$OS" = "Darwin" ]]; then
+  if [[ "$TERM" = "xterm-kitty" ]]; then
+    TERMINAL="kitty"
+  elif [[ "$OS" = "Darwin" ]]; then
     TERMINAL=$TERM_PROGRAM
   elif [[ "${OS#CYGWIN}" != "${OS}" ]]; then
     TERMINAL="mintty"
@@ -110,6 +112,32 @@ case "${TERMINAL}" in
     fi
     ;;
 
+  foot )
+    CFGFILE="${HOME}/.config/foot/foot.ini"
+    if [[ ! -f "${CFGFILE}" ]]; then
+      printf '\n%s\n' "Error: Couldn't find an existing configuration file."
+      exit 1
+    fi
+    ;;
+
+  kitty )
+    if [[ -z "${KITTY_CONFIG_DIRECTORY:-}" ]]; then
+      KITTY_CONFIG_DIRECTORY="${HOME}/.config/kitty"
+    fi
+    CFGFILE="${KITTY_CONFIG_DIRECTORY}/kitty.conf"
+    if [[ ! -f "${CFGFILE}" ]]; then
+      printf '\n%s\n' "Error: Couldn't find an existing configuration file for Kitty."
+      exit 1
+    fi
+    ;;
+
+  konsole )
+    CFGFILE="${HOME}/.config/konsolerc"
+    if [[ ! -f "${CFGFILE}" ]]; then
+      printf '\n%s\n' "Error: Couldn't find an existing configuration file for Konsole."
+      exit 1
+    fi
+    ;;
 esac
 
 
@@ -170,6 +198,34 @@ updateMinttyConfig () {
   sed -i -r -e "s/^${name}=.+/$(createMinttyEntry "${name}" "${color}")/g" "${config}"
 }
 
+updateFootConfig () {
+  local config="${1}"
+  local  color="${2}"
+  local   name="${3}"
+
+  sed -i -r -e "s/^${name}=.+/${name}=${color/\#/}/g" "${config}"
+}
+
+createKonsoleEntry () {
+  local   name="${1}"
+  local  color="${2}"
+  set --
+  set -- $(hexRGBtoDecRGB "${color}")
+  R=${1}; shift; G=${1}; shift; B=${1}; shift
+
+  echo -e "[$name]\nColor=${R},${G},${B}\n"
+}
+
+createKonsoleTriple () {
+  local   name="${1}"
+  local colorn="${2}"  # normal and faint
+  local colori="${3}"  # intense
+
+  createKonsoleEntry "${name}" "${colorn}"
+  createKonsoleEntry "${name}Faint" "${colorn}"
+  createKonsoleEntry "${name}Intense" "${colori}"
+}
+
 convertNameAndRGBtoITerm() {
   local  name="${1}"
   local color="${2}"
@@ -192,7 +248,7 @@ dlist_append() {
   local key="${1}"; shift
   local val="${1}"; shift
   local entries
-  
+
   entries="$(
   {
     "${DCONF}" read "${key}" | tr -d "[]" | tr , "\n" | grep -F -v "${val}"
@@ -329,7 +385,19 @@ apply_elementary() {
   # |
   # | Applying values on elementary/pantheon terminal
   # | ===========================================
-  gset background   "${BACKGROUND_COLOR}"
+
+  local BG_COLOR="${BACKGROUND_COLOR}"
+
+  # If the background color is in the format #rrggbb, convert it to rgba(r,g,b,0.95).
+  # This makes it 5% transparent, which is the default in elementary OS.
+  if [[ ${BACKGROUND_COLOR} =~ ^#[[:xdigit:]]{6}$ ]]; then
+    local R="$((16#${BACKGROUND_COLOR:1:2}))"
+    local G="$((16#${BACKGROUND_COLOR:3:2}))"
+    local B="$((16#${BACKGROUND_COLOR:5:2}))"
+    BG_COLOR="rgba($R,$G,$B,0.95)"
+  fi
+
+  gset background   "${BG_COLOR}"
   gset foreground   "${FOREGROUND_COLOR}"
   gset cursor-color "${CURSOR_COLOR}"
   gset palette      "${COLOR_01}:${COLOR_02}:${COLOR_03}:${COLOR_04}:${COLOR_05}:${COLOR_06}:${COLOR_07}:${COLOR_08}:${COLOR_09}:${COLOR_10}:${COLOR_11}:${COLOR_12}:${COLOR_13}:${COLOR_14}:${COLOR_15}:${COLOR_16}"
@@ -411,7 +479,7 @@ apply_alacritty() {
 
   # Allow developer to change url to forked url for easier testing
   # IMPORTANT: Make sure you export this variable if your main shell is not bash
-  BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Mayccoll/Gogh/master"}
+  BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Gogh-Co/Gogh/master"}
 
 
   if [[ -e "${SCRIPT_PATH}/apply-alacritty.py" ]]; then
@@ -428,11 +496,146 @@ apply_alacritty() {
 
 }
 
+apply_foot() {
+  # |
+  # | Applying values on foot
+  # | ===========================================
+
+  echo "Patching foot configuration file (${CFGFILE}) with new colors..."
+
+  updateFootConfig "$CFGFILE" "$COLOR_01" "regular0"
+  updateFootConfig "$CFGFILE" "$COLOR_02" "regular1"
+  updateFootConfig "$CFGFILE" "$COLOR_03" "regular2"
+  updateFootConfig "$CFGFILE" "$COLOR_04" "regular3"
+  updateFootConfig "$CFGFILE" "$COLOR_05" "regular4"
+  updateFootConfig "$CFGFILE" "$COLOR_06" "regular5"
+  updateFootConfig "$CFGFILE" "$COLOR_07" "regular6"
+  updateFootConfig "$CFGFILE" "$COLOR_08" "regular7"
+
+  updateFootConfig "$CFGFILE" "$COLOR_09" "bright0"
+  updateFootConfig "$CFGFILE" "$COLOR_10" "bright1"
+  updateFootConfig "$CFGFILE" "$COLOR_11" "bright2"
+  updateFootConfig "$CFGFILE" "$COLOR_12" "bright3"
+  updateFootConfig "$CFGFILE" "$COLOR_13" "bright4"
+  updateFootConfig "$CFGFILE" "$COLOR_14" "bright5"
+  updateFootConfig "$CFGFILE" "$COLOR_15" "bright6"
+  updateFootConfig "$CFGFILE" "$COLOR_16" "bright7"
+
+  updateFootConfig "$CFGFILE" "$BACKGROUND_COLOR" "background"
+  updateFootConfig "$CFGFILE" "$FOREGROUND_COLOR" "foreground"
+
+  echo "Done - please reopen your foot terminal to see the changes"
+
+}
+
+apply_kitty() {
+  # |
+  # | Applying values on Kitty
+  # | ===========================================
+
+  echo "Patching kitty configuration file ($CFGFILE) with include of color theme file..."
+
+  COLOR_FILE="colors.conf"
+
+  if ! grep -q "^include $COLOR_FILE$" "$CFGFILE" ; then
+    echo "" >> "$CFGFILE"
+    echo "# Added by Gogh" >> "$CFGFILE"
+    echo "include $COLOR_FILE" >> "$CFGFILE"
+  fi
+
+  CFGFILE="${KITTY_CONFIG_DIRECTORY}/$COLOR_FILE"
+
+  echo "Updating color theme file ($CFGFILE) with theme..."
+
+  rm -f "$CFGFILE"
+
+  echo "# Color theme: $PROFILE_NAME" >> "$CFGFILE"
+  echo "# Auto-generated by Gogh (https://Gogh-Co.github.io/Gogh/)" >> "$CFGFILE"
+  echo "" >> "$CFGFILE"
+  echo "color0  $COLOR_01" >> "$CFGFILE"
+  echo "color1  $COLOR_02" >> "$CFGFILE"
+  echo "color2  $COLOR_03" >> "$CFGFILE"
+  echo "color3  $COLOR_04" >> "$CFGFILE"
+  echo "color4  $COLOR_05" >> "$CFGFILE"
+  echo "color5  $COLOR_06" >> "$CFGFILE"
+  echo "color6  $COLOR_07" >> "$CFGFILE"
+  echo "color7  $COLOR_08" >> "$CFGFILE"
+  echo "color8  $COLOR_09" >> "$CFGFILE"
+  echo "color9  $COLOR_10" >> "$CFGFILE"
+  echo "color10 $COLOR_11" >> "$CFGFILE"
+  echo "color11 $COLOR_12" >> "$CFGFILE"
+  echo "color12 $COLOR_13" >> "$CFGFILE"
+  echo "color13 $COLOR_14" >> "$CFGFILE"
+  echo "color14 $COLOR_15" >> "$CFGFILE"
+  echo "color15 $COLOR_16" >> "$CFGFILE"
+
+  echo "background $BACKGROUND_COLOR" >> "$CFGFILE"
+  echo "foreground $FOREGROUND_COLOR" >> "$CFGFILE"
+
+  [ -n "$HIGHLIGHT_FG_COLOR" ] && echo "selection_foreground $HIGHLIGHT_FG_COLOR" >> "$CFGFILE"
+  [ -n "$HIGHLIGHT_BG_COLOR" ] && echo "selection_background $HIGHLIGHT_BG_COLOR" >> "$CFGFILE"
+
+  echo "cursor $CURSOR_COLOR" >> "$CFGFILE"
+
+  echo "Done - please reopen your kitty terminal to see the changes"
+}
+
+apply_konsole() {
+  # |
+  # | Applying values on Konsole
+  # | ===========================================
+
+  PARENT=$(grep -o "^DefaultProfile=.*$" ${CFGFILE} | cut -d '=' -f 2)
+  if [[ -z "${PARENT}" ]]; then
+    PARENT="FALLBACK/"
+  fi
+
+  if [[ -z "${XDG_DATA_HOME:-}" ]]; then
+    KDIR="${HOME}/.local/share/konsole"
+  else
+	KDIR="${XDG_DATA_HOME}/konsole"
+  fi
+
+  KPROFILE="${KDIR}/${PROFILE_NAME}.profile"
+  if [[ -f "${KPROFILE}" ]]; then
+      echo "Profile ${PROFILE_NAME} already exists in Konsole confiuration (${KONSOLE_DIR}); Skipping ..."
+      exit 0
+  fi
+
+  touch "${KPROFILE}"
+  echo -e "[Appearance]\nColorScheme=${PROFILE_NAME}\n" >> "${KPROFILE}"
+  echo -e "[General]\nName=${PROFILE_NAME}\nParent=$PARENT" >> "${KPROFILE}"
+
+  KCOLORSCHEME="${KDIR}/${PROFILE_NAME}.colorscheme"
+  if [[ -f "${KCOLORSCHEME}" ]]; then
+      echo "Color Scheme ${PROFILE_NAME} already exists in Konsole confiuration (${KONSOLE_DIR}); Skipping ..."
+      exit 0
+  fi
+
+  touch "${KCOLORSCHEME}"
+  createKonsoleTriple "Background" "${BACKGROUND_COLOR}" "${BACKGROUND_COLOR}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color0" "${COLOR_01}" "${COLOR_09}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color1" "${COLOR_02}" "${COLOR_10}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color2" "${COLOR_03}" "${COLOR_11}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color3" "${COLOR_04}" "${COLOR_12}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color4" "${COLOR_05}" "${COLOR_13}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color5" "${COLOR_06}" "${COLOR_14}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color6" "${COLOR_07}" "${COLOR_15}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Color7" "${COLOR_08}" "${COLOR_16}" >> "${KCOLORSCHEME}"
+  createKonsoleTriple "Foreground" "${FOREGROUND_COLOR}" "${FOREGROUND_COLOR}" >> "${KCOLORSCHEME}"
+  echo "[General]" >> "${KCOLORSCHEME}"
+  echo "Blur=false" >> "${KCOLORSCHEME}"
+  echo "ColorRandomization=false" >> "${KCOLORSCHEME}"
+  echo "Description=${PROFILE_NAME}" >> "${KCOLORSCHEME}"
+  echo "Opacity=1" >> "${KCOLORSCHEME}"
+  echo "Wallpaper=" >> "${KCOLORSCHEME}"
+}
+
 apply_darwin() {
   # |
   # | Applying values on iTerm2
   # | ===========================================
-  
+
   BACKGROUND_COLOR=$(convertNameAndRGBtoITerm "Background Color" "$BACKGROUND_COLOR")
   FOREGROUND_COLOR=$(convertNameAndRGBtoITerm "Foreground Color" "$FOREGROUND_COLOR")
   COLOR_01=$(convertNameAndRGBtoITerm "Ansi 0 Color"             "$COLOR_01")
@@ -467,7 +670,7 @@ apply_gtk() {
   # | ===========================================
 
   local legacy="${1:-}"
-  
+
   # This is to avoid doing the profile loop definition twice
   if [[ -z "${legacy}" ]]; then
     CONFTOOL="${DCONF} read"
@@ -486,7 +689,7 @@ apply_gtk() {
     fi
   done
 
-  # Fallback if there is no default profile 
+  # Fallback if there is no default profile
   set -- $(${CONFTOOL} ${PROFILE_LIST_KEY} | tr "[]'," " ")
   : ${DEFAULT_SLUG:="$1"}
 
@@ -632,7 +835,7 @@ apply_xfce4-terminal() {
 
     printf '%s\n' \
         "; Generated by Gogh" \
-        "; https://mayccoll.github.io/Gogh" \
+        "; https://Gogh-Co.github.io/Gogh" \
         "[Scheme]" \
         "Name=${PROFILE_NAME}" \
         "ColorForeground=${FOREGROUND_COLOR}" \
@@ -653,7 +856,7 @@ apply_xfce4-terminal() {
             else
                 echo "${L_COLORPALETTE}" >> "${CONFFILE}"
             fi
-            
+
             if grep -q "^ColorCursor=" "${CONFFILE}"; then
                 sed -i -r -e "s/^ColorCursor=.*/${L_COLORCURSOR}/" "${CONFFILE}"
             else
@@ -778,6 +981,18 @@ case "${TERMINAL}" in
     apply_alacritty
     ;;
 
+  foot )
+    apply_foot
+    ;;
+
+  kitty )
+    apply_kitty
+    ;;
+
+  konsole )
+    apply_konsole
+    ;;
+
   * )
     printf '%s\n'                                             \
     "Unsupported terminal!"                                   \
@@ -791,8 +1006,11 @@ case "${TERMINAL}" in
     "   gnome-terminal"                                       \
     "   tilix"                                                \
     "   xfce4-terminal"                                       \
+    "   foot"                                                 \
+    "   kitty"                                                \
+    "   konsole"                                              \
     ""                                                        \
-    "If you believe you have recieved this message in error," \
+    "If you believe you have received this message in error," \
     "try manually setting \`TERMINAL', hint: ps -h -o comm -p \$PPID"
     exit 1
     ;;

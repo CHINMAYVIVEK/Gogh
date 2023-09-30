@@ -12,18 +12,20 @@ GLOBAL_VAR_CLEANUP(){
 trap 'GLOBAL_VAR_CLEANUP; trap - EXIT' EXIT HUP INT QUIT PIPE TERM
 
 # TO-DO: Investigate dynamically building this array e.g.
-# curl -s https://github.com/Mayccoll/Gogh/tree/master/themes | grep -o "title=.*\.sh\" " | awk -F '=' '{print $2}'
+# curl -s https://github.com/Gogh-Co/Gogh/tree/master/themes | grep -o "title=.*\.sh\" " | awk -F '=' '{print $2}'
 declare -a THEMES=(
   '3024-day.sh'
   '3024-night.sh'
   'aci.sh'
   'aco.sh'
-  'adventuretime.sh'
+  'adventure-time.sh'
   'afterglow.sh'
   'alien-blood.sh'
+  'apprentice.sh'
   'argonaut.sh'
   'arthur.sh'
   'atom.sh'
+  'aura.sh'
   'ayu-dark.sh'
   'ayu-light.sh'
   'ayu-mirage.sh'
@@ -34,19 +36,30 @@ declare -a THEMES=(
   'birds-of-paradise.sh'
   'blazer.sh'
   'bluloco-light.sh'
+  'bluloco-zsh-light.sh'
   'borland.sh'
+  'breath-darker.sh'
+  'breath-light.sh'
+  'breath-silverfox.sh'
+  'breath.sh'
+  'breeze.sh'
   'broadcast.sh'
   'brogrammer.sh'
   'c64.sh'
   'cai.sh'
+  'campbell.sh'
+  'catppuccin-frappe.sh'
+  'catppuccin-latte.sh'
+  'catppuccin-macchiato.sh'
+  'catppuccin-mocha.sh'
   'chalk.sh'
   'chalkboard.sh'
   'chameleon.sh'
   'ciapre.sh'
   'clone-of-ubuntu.sh'
   'clrs.sh'
+  'cobalt-2.sh'
   'cobalt-neon.sh'
-  'cobalt2.sh'
   'colorcli.sh'
   'crayon-pony-fish.sh'
   'dark-pastel.sh'
@@ -54,6 +67,7 @@ declare -a THEMES=(
   'dehydration.sh'
   'desert.sh'
   'dimmed-monokai.sh'
+  'dissonance.sh'
   'dracula.sh'
   'earthsong.sh'
   'elemental.sh'
@@ -62,8 +76,11 @@ declare -a THEMES=(
   'elio.sh'
   'espresso-libre.sh'
   'espresso.sh'
-  'fairyfloss.sh'
-  'fairyflossdark.sh'
+  'everblush.sh'
+  'everforest-dark.sh'
+  'everforest-light.sh'
+  'fairy-floss-dark.sh'
+  'fairy-floss.sh'
   'fishtank.sh'
   'flat-remix.sh'
   'flat.sh'
@@ -75,6 +92,7 @@ declare -a THEMES=(
   'frontend-galaxy.sh'
   'geohot.sh'
   'github.sh'
+  'gogh.sh'
   'gooey.sh'
   'google-dark.sh'
   'google-light.sh'
@@ -82,6 +100,7 @@ declare -a THEMES=(
   'grape.sh'
   'grass.sh'
   'gruvbox-dark.sh'
+  'gruvbox-material.sh'
   'gruvbox.sh'
   'hardcore.sh'
   'harper.sh'
@@ -89,11 +108,14 @@ declare -a THEMES=(
   'hemisu-light.sh'
   'highway.sh'
   'hipster-green.sh'
+  'homebrew-light.sh'
+  'homebrew-ocean.sh'
   'homebrew.sh'
   'horizon-bright.sh'
   'horizon-dark.sh'
   'hurtado.sh'
   'hybrid.sh'
+  'ibm-3270-high-contrast.sh'
   'ibm3270.sh'
   'ic-green-ppl.sh'
   'ic-orange-ppl.sh'
@@ -103,6 +125,7 @@ declare -a THEMES=(
   'japanesque.sh'
   'jellybeans.sh'
   'jup.sh'
+  'kanagawa.sh'
   'kibble.sh'
   'kokuban.sh'
   'laserwave.sh'
@@ -120,7 +143,6 @@ declare -a THEMES=(
   'mathias.sh'
   'medallion.sh'
   'misterioso.sh'
-  'miu.sh'
   'molokai.sh'
   'mona-lisa.sh'
   'mono-amber.sh'
@@ -130,8 +152,10 @@ declare -a THEMES=(
   'mono-white.sh'
   'mono-yellow.sh'
   'monokai-dark.sh'
+  'monokai-pro-ristretto.sh'
   'monokai-pro.sh'
   'monokai-soda.sh'
+  'morada.sh'
   'n0tch2k.sh'
   'neon-night.sh'
   'neopolitan.sh'
@@ -146,13 +170,13 @@ declare -a THEMES=(
   'novel.sh'
   'obsidian.sh'
   'ocean-dark.sh'
-  'ocean.sh'
   'oceanic-next.sh'
   'ollie.sh'
   'omni.sh'
   'one-dark.sh'
   'one-half-black.sh'
   'one-light.sh'
+  'oxocarbon-dark.sh'
   'palenight.sh'
   'pali.sh'
   'panda.sh'
@@ -166,12 +190,16 @@ declare -a THEMES=(
   'pixiefloss.sh'
   'pnevma.sh'
   'powershell.sh'
+  'predawn.sh'
   'pro.sh'
   'purple-people-eater.sh'
   'red-alert.sh'
   'red-sands.sh'
   'relaxed.sh'
   'rippedcasts.sh'
+  'rose-pine-dawn.sh'
+  'rose-pine-moon.sh'
+  'rose-pine.sh'
   'royal.sh'
   'sat.sh'
   'sea-shells.sh'
@@ -187,6 +215,7 @@ declare -a THEMES=(
   'solarized-dark-higher-contrast.sh'
   'solarized-dark.sh'
   'solarized-light.sh'
+  'sonokai.sh'
   'spacedust.sh'
   'spacegray-eighties-dull.sh'
   'spacegray-eighties.sh'
@@ -197,14 +226,19 @@ declare -a THEMES=(
   'summer-pop.sh'
   'sundried.sh'
   'sweet-eliverlara.sh'
-  'sweet.sh'
+  'sweet-terminal.sh'
   'symphonic.sh'
+  'synthwave-alpha.sh'
   'synthwave.sh'
   'teerb.sh'
+  'tender.sh'
   'terminal-basic.sh'
   'terminix-dark.sh'
   'thayer-bright.sh'
   'tin.sh'
+  'tokyo-night-light.sh'
+  'tokyo-night-storm.sh'
+  'tokyo-night.sh'
   'tomorrow-night-blue.sh'
   'tomorrow-night-bright.sh'
   'tomorrow-night-eighties.sh'
@@ -218,8 +252,8 @@ declare -a THEMES=(
   'vag.sh'
   'vaughn.sh'
   'vibrant-ink.sh'
-  'vs-code-dark-plus.sh'
-  'vs-code-light-plus.sh'
+  'vs-code-dark.sh'
+  'vs-code-light.sh'
   'warm-neon.sh'
   'wez.sh'
   'wild-cherry.sh'
@@ -230,7 +264,7 @@ declare -a THEMES=(
 )
 
 # Allow developer to change url to forked url for easier testing
-BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Mayccoll/Gogh/master"}
+BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Gogh-Co/Gogh/master"}
 PROGRESS_URL="https://raw.githubusercontent.com/phenonymous/shell-progressbar/1.0/progress.sh"
 
 capitalize() {
@@ -254,14 +288,14 @@ set_gogh() {
   string_r="${string%???}"
   string_s=${string_r//\./_}
   result=$(capitalize "${string_s}")
-  url="${BASE_URL}/themes/$1"
+  url="${BASE_URL}/installs/$1"
 
   export {PROFILE_NAME,PROFILE_SLUG}="$result"
 
   # Evaluate if Gogh was called from local source - i.e cloned repo
   SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  if [[ -e "${SCRIPT_PATH}/themes/$1" ]]; then
-    bash "${SCRIPT_PATH}/themes/$1"
+  if [[ -e "${SCRIPT_PATH}/installs/$1" ]]; then
+    bash "${SCRIPT_PATH}/installs/$1"
   else
     if [[ "$(uname)" = "Darwin" ]]; then
       # OSX ships with curl
@@ -359,6 +393,8 @@ if [[ -z "${TERMINAL:-}" ]]; then
     TERMINAL=$TERM_PROGRAM
   elif [[ "${OS#CYGWIN}" != "${OS}" ]]; then
     TERMINAL="mintty"
+  elif [[ "$TERM" = "xterm-kitty" ]]; then
+    TERMINAL="kitty"
   else
     # |
     # | Depending on how the script was invoked, we need
