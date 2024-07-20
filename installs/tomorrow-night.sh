@@ -11,7 +11,7 @@ export COLOR_06="#B293BB"           # Magenta (Syntax var)
 export COLOR_07="#8ABEB7"           # Cyan (Prompt)
 export COLOR_08="#FFFEFE"           # White
 
-export COLOR_09="#000000"           # Bright Black
+export COLOR_09="#808080"           # Bright Black
 export COLOR_10="#CC6666"           # Bright Red (Command error)
 export COLOR_11="#B5BD68"           # Bright Green (Exec)
 export COLOR_12="#F0C574"           # Bright Yellow
@@ -25,25 +25,27 @@ export FOREGROUND_COLOR="#C5C8C6"   # Foreground (Text)
 
 export CURSOR_COLOR="#C4C8C5" # Cursor
 
+apply_theme() {
+    if [[ -e "${GOGH_APPLY_SCRIPT}" ]]; then
+      bash "${GOGH_APPLY_SCRIPT}"
+    elif [[ -e "${PARENT_PATH}/apply-colors.sh" ]]; then
+      bash "${PARENT_PATH}/apply-colors.sh"
+    elif [[ -e "${SCRIPT_PATH}/apply-colors.sh" ]]; then
+      bash "${SCRIPT_PATH}/apply-colors.sh"
+    else
+      printf '\n%s\n' "Error: Couldn't find apply-colors.sh" 1>&2
+      exit 1
+    fi
+}
+
 # | ===========================================================================
 # | Apply Colors
 # | ===========================================================================
 SCRIPT_PATH="${SCRIPT_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 PARENT_PATH="$(dirname "${SCRIPT_PATH}")"
 
-# Allow developer to change url to forked url for easier testing
-# IMPORTANT: Make sure you export this variable if your main shell is not bash
-BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Gogh-Co/Gogh/master"}
-
-
-if [[ -e "${PARENT_PATH}/apply-colors.sh" ]]; then
-  bash "${PARENT_PATH}/apply-colors.sh"
+if [ -z "${GOGH_NONINTERACTIVE+no}" ]; then
+    apply_theme
 else
-  if [[ "$(uname)" = "Darwin" ]]; then
-    # OSX ships with curl and ancient bash
-    bash -c "$(curl -so- "${BASE_URL}/apply-colors.sh")"
-  else
-    # Linux ships with wget
-    bash -c "$(wget -qO- "${BASE_URL}/apply-colors.sh")"
-  fi
+    apply_theme 1>/dev/null
 fi

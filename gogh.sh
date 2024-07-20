@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 
+# Variables to avoid repeated calls to tput
+for n in {0..15}; do
+  declare C$n=$(tput setaf $n)
+done
+CR=$(tput sgr0)
+CS0=$(tput sgr 0)
+
 # Define traps and trapfunctions early in case any errors before script exits
 GLOBAL_VAR_CLEANUP(){
+  echo "Cleanup up..."
   [[ -n "$(command -v TILIX_TMP_CLEANUP)" ]] && TILIX_TMP_CLEANUP
+  [[ -n "$(command -v ALACRITTY_APPLY_TMP_CLEANUP)" ]] && ALACRITTY_APPLY_TMP_CLEANUP
+  [[ -n "$(command -v TERMINATOR_APPLY_TMP_CLEANUP)" ]] && TERMINATOR_APPLY_TMP_CLEANUP
+  [[ -n "$(command -v APPLY_SCRIPT_TMP_CLEANUP)" ]] && APPLY_SCRIPT_TMP_CLEANUP
   unset PROFILE_NAME
   unset PROFILE_SLUG
   unset TILIX_RES
   unset TERMINAL
+  echo "Done"
 }
 
 trap 'GLOBAL_VAR_CLEANUP; trap - EXIT' EXIT HUP INT QUIT PIPE TERM
@@ -24,6 +36,7 @@ declare -a THEMES=(
   'apprentice.sh'
   'argonaut.sh'
   'arthur.sh'
+  'astrodark.sh'
   'atom.sh'
   'aura.sh'
   'ayu-dark.sh'
@@ -35,9 +48,11 @@ declare -a THEMES=(
   'bim.sh'
   'birds-of-paradise.sh'
   'blazer.sh'
+  'blue-dolphin.sh'
   'bluloco-light.sh'
   'bluloco-zsh-light.sh'
   'borland.sh'
+  'breadog.sh'
   'breath-darker.sh'
   'breath-light.sh'
   'breath-silverfox.sh'
@@ -45,6 +60,7 @@ declare -a THEMES=(
   'breeze.sh'
   'broadcast.sh'
   'brogrammer.sh'
+  'butrin.sh'
   'c64.sh'
   'cai.sh'
   'campbell.sh'
@@ -56,6 +72,7 @@ declare -a THEMES=(
   'chalkboard.sh'
   'chameleon.sh'
   'ciapre.sh'
+  'city-lights.sh'
   'clone-of-ubuntu.sh'
   'clrs.sh'
   'cobalt-2.sh'
@@ -77,8 +94,12 @@ declare -a THEMES=(
   'espresso-libre.sh'
   'espresso.sh'
   'everblush.sh'
-  'everforest-dark.sh'
-  'everforest-light.sh'
+  'everforest-dark-hard.sh'
+  'everforest-dark-medium.sh'
+  'everforest-dark-soft.sh'
+  'everforest-light-hard.sh'
+  'everforest-light-medium.sh'
+  'everforest-light-soft.sh'
   'fairy-floss-dark.sh'
   'fairy-floss.sh'
   'fishtank.sh'
@@ -120,12 +141,14 @@ declare -a THEMES=(
   'ibm3270.sh'
   'ic-green-ppl.sh'
   'ic-orange-ppl.sh'
+  'iceberg.sh'
   'idle-toes.sh'
   'ir-black.sh'
   'jackie-brown.sh'
   'japanesque.sh'
   'jellybeans.sh'
   'jup.sh'
+  'kanagawa-dragon.sh'
   'kanagawa.sh'
   'kibble.sh'
   'kokuban.sh'
@@ -143,7 +166,12 @@ declare -a THEMES=(
   'material.sh'
   'mathias.sh'
   'medallion.sh'
+  'miramare.sh'
   'misterioso.sh'
+  'modus-operandi-tinted.sh'
+  'modus-operandi.sh'
+  'modus-vivendi-tinted.sh'
+  'modus-vivendi.sh'
   'molokai.sh'
   'mona-lisa.sh'
   'mono-amber.sh'
@@ -183,6 +211,7 @@ declare -a THEMES=(
   'palenight.sh'
   'pali.sh'
   'panda.sh'
+  'paper.sh'
   'papercolor-dark.sh'
   'papercolor-light.sh'
   'paraiso-dark.sh'
@@ -196,6 +225,7 @@ declare -a THEMES=(
   'predawn.sh'
   'pro.sh'
   'purple-people-eater.sh'
+  'quiet.sh'
   'red-alert.sh'
   'red-sands.sh'
   'relaxed.sh'
@@ -207,8 +237,12 @@ declare -a THEMES=(
   'sat.sh'
   'sea-shells.sh'
   'seafoam-pastel.sh'
+  'selenized-black.sh'
   'selenized-dark.sh'
   'selenized-light.sh'
+  'selenized-white.sh'
+  'seoul256-light.sh'
+  'seoul256.sh'
   'seti.sh'
   'shaman.sh'
   'shel.sh'
@@ -225,6 +259,7 @@ declare -a THEMES=(
   'spacegray-eighties-dull.sh'
   'spacegray-eighties.sh'
   'spacegray.sh'
+  'sparky.sh'
   'spring.sh'
   'square.sh'
   'srcery.sh'
@@ -273,6 +308,8 @@ declare -a THEMES=(
 BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Gogh-Co/Gogh/master"}
 PROGRESS_URL="https://raw.githubusercontent.com/phenonymous/shell-progressbar/1.0/progress.sh"
 
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 capitalize() {
   local ARGUMENT=$1
   local RES=""
@@ -289,6 +326,57 @@ capitalize() {
 }
 
 
+# Used to get required python scripts, either from the internet or from local directory
+if [[ ! -f "${SCRIPT_PATH}/apply-alacritty.py" ]]; then
+  ALACRITTY_APPLY_TMP_CLEANUP() {
+    rm -rf "${GOGH_ALACRITTY_SCRIPT}"
+    unset GOGH_ALACRITTY_SCRIPT
+  }
+  export GOGH_ALACRITTY_SCRIPT="$(mktemp -t gogh.alacritty.XXXXXX)"
+  if [[ "$(uname)" = "Darwin" ]]; then
+    # OSX ships with curl and ancient bash
+    curl -so "${GOGH_ALACRITTY_SCRIPT}" "${BASE_URL}/apply-alacritty.py"
+  else
+    # Linux ships with wget
+    wget -qO "${GOGH_ALACRITTY_SCRIPT}" "${BASE_URL}/apply-alacritty.py"
+  fi
+fi
+
+
+# Used to get required python scripts, either from the internet or from local directory
+if [[ ! -e "${SCRIPT_PATH}/apply-terminator.py" ]]; then
+  TERMINATOR_APPLY_TMP_CLEANUP() {
+    rm -rf "${GOGH_TERMINATOR_SCRIPT}"
+    unset GOGH_TERMINATOR_SCRIPT
+  }
+  export GOGH_TERMINATOR_SCRIPT="$(mktemp -t gogh.terminator.XXXXXX)"
+  if [[ "$(uname)" = "Darwin" ]]; then
+    # OSX ships with curl and ancient bash
+    curl -so "${GOGH_TERMINATOR_SCRIPT}" "${BASE_URL}/apply-terminator.py"
+  else
+    # Linux ships with wget
+    wget -qO "${GOGH_TERMINATOR_SCRIPT}" "${BASE_URL}/apply-terminator.py"
+  fi
+fi
+
+
+# Used to get required shell scripts, either from the internet or from local directory
+if [[ ! -e "${SCRIPT_PATH}/apply-colors.sh" ]]; then
+  APPLY_SCRIPT_TMP_CLEANUP() {
+    rm -rf "${GOGH_APPLY_SCRIPT}"
+    unset GOGH_APPLY_SCRIPT
+  }
+  export GOGH_APPLY_SCRIPT="$(mktemp -t gogh.apply.XXXXXX)"
+  if [[ "$(uname)" = "Darwin" ]]; then
+    # OSX ships with curl and ancient bash
+    curl -so "${GOGH_APPLY_SCRIPT}" "${BASE_URL}/apply-colors.sh"
+  else
+    # Linux ships with wget
+    wget -qO "${GOGH_APPLY_SCRIPT}" "${BASE_URL}/apply-colors.sh"
+  fi
+fi
+
+
 set_gogh() {
   string=$1
   string_r="${string%???}"
@@ -298,8 +386,6 @@ set_gogh() {
 
   export {PROFILE_NAME,PROFILE_SLUG}="$result"
 
-  # Evaluate if Gogh was called from local source - i.e cloned repo
-  SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   if [[ -e "${SCRIPT_PATH}/installs/$1" ]]; then
     bash "${SCRIPT_PATH}/installs/$1"
   else
@@ -321,7 +407,6 @@ remove_file_extension (){
 
 ### Get length of an array
 ARRAYLENGTH=${#THEMES[@]}
-NUM=1
 
 
 # |
@@ -338,12 +423,12 @@ if [[ ${COLUMNS:-$(tput cols)} -ge 80 ]]; then
   gogh_str+="                  ███    █████ ███  ███ ███  ███  ███  ███                      \n"
   gogh_str+="                   ███    ███  ███  ███ ███  ███  ███  ███                      \n"
   gogh_str+="                    █████████   ██████   ███████ ████ █████                     \n"
-  gogh_str+="    $(tput setaf 0)█████████$(tput setaf 1)█████████$(tput setaf 2)█████████$(tput setaf 3)█████████$(tput setaf 4)█████$(tput sgr 0)███$(tput setaf 4)█$(tput setaf 5)█████████$(tput setaf 6)█████████$(tput setaf 7)█████████    \n"
-  gogh_str+="    $(tput setaf 0)█████████$(tput setaf 1)█████████$(tput setaf 2)█████████$(tput setaf 3)█████████$(tput sgr 0)███$(tput setaf 4)██$(tput sgr 0)███$(tput setaf 4)█$(tput setaf 5)█████████$(tput setaf 6)█████████$(tput setaf 7)█████████    \n"
-  gogh_str+="    $(tput setaf 0)█████████$(tput setaf 1)█████████$(tput setaf 2)█████████$(tput setaf 3)█████████$(tput setaf 4)█$(tput sgr0)██████$(tput setaf 4)██$(tput setaf 5)█████████$(tput setaf 6)█████████$(tput setaf 7)█████████    \n"
-  gogh_str+="    $(tput setaf 8)█████████$(tput setaf 9)█████████$(tput setaf 10)█████████$(tput setaf 11)█████████$(tput setaf 12)█████████$(tput setaf 13)█████████$(tput setaf 14)█████████$(tput setaf 15)█████████$(tput sgr 0)    \n"
-  gogh_str+="    $(tput setaf 8)█████████$(tput setaf 9)█████████$(tput setaf 10)█████████$(tput setaf 11)█████████$(tput setaf 12)█████████$(tput setaf 13)█████████$(tput setaf 14)█████████$(tput setaf 15)█████████$(tput sgr 0)    \n"
-  gogh_str+="    $(tput setaf 8)█████████$(tput setaf 9)█████████$(tput setaf 10)█████████$(tput setaf 11)█████████$(tput setaf 12)█████████$(tput setaf 13)█████████$(tput setaf 14)█████████$(tput setaf 15)█████████$(tput sgr 0)    \n"
+  gogh_str+="    ${C0}█████████${C1}█████████${C2}█████████${C3}█████████${C4}█████${CS0}███${C4}█${C5}█████████${C6}█████████${C7}█████████    \n"
+  gogh_str+="    ${C0}█████████${C1}█████████${C2}█████████${C3}█████████${CS0}███${C4}██${CS0}███${C4}█${C5}█████████${C6}█████████${C7}█████████    \n"
+  gogh_str+="    ${C0}█████████${C1}█████████${C2}█████████${C3}█████████${C4}█${CR}██████${C4}██${C5}█████████${C6}█████████${C7}█████████    \n"
+  gogh_str+="    ${C8}█████████${C9}█████████${C10}█████████${C11}█████████${C12}█████████${C13}█████████${C14}█████████${C15}█████████${CS0}    \n"
+  gogh_str+="    ${C8}█████████${C9}█████████${C10}█████████${C11}█████████${C12}█████████${C13}█████████${C14}█████████${C15}█████████${CS0}    \n"
+  gogh_str+="    ${C8}█████████${C9}█████████${C10}█████████${C11}█████████${C12}█████████${C13}█████████${C14}█████████${C15}█████████${CS0}    \n"
   gogh_str+="                                                                                "
 
 
@@ -351,9 +436,9 @@ if [[ ${COLUMNS:-$(tput cols)} -ge 80 ]]; then
   sleep 2.5
 else
   echo -e "\nGogh\n"
-  for c in {0..15}; do
-    echo -n "$(tput setaf $c)█████$(tput sgr0)"
-    [[ $c == 7 ]] && echo # new line
+  for c in C{0..15}; do
+    echo -n "${!c}█████${CR}"
+    [[ $c == C7 ]] && echo # new line
   done
   echo
 fi
@@ -364,24 +449,32 @@ fi
 # |
 echo -e "\nThemes:\n"
 
-for TH in "${THEMES[@]}"; do
+# Column display of available themes
+# Note: /usr/bin/column uses tabs and does not support ANSI codes yet (merged but not released)
+MAXL=$(( $(printf "%s\n" "${THEMES[@]}" | wc -L) - 3 )) # Biggest theme name without the extension
+NCOLS=$(( ${COLUMNS:-$(tput cols)} / (10+MAXL) ))       # number of columns, 10 is the length of '  ( xxx ) '
+NROWS=$(( (ARRAYLENGTH-1)/NCOLS + 1 ))                  # number of rows
+row=0
 
-  KEY=$(printf "%02d" $NUM)
-  FILENAME=${TH::$((${#TH}-3))}
-  FILENAME_SPACE=${FILENAME//-/ }
+while ((row < NROWS)); do
+  col=0
+  while ((col < NCOLS)); do
+    NUM=$((col*NROWS+row))
+    NAME="${THEMES[$NUM]}"
+    [[ -n $NAME ]] && printf "  ( ${C4}%3d${CR} ) %-${MAXL}s" $((NUM+1)) "$NAME"
+    ((col++))
+  done
+  echo
+  ((row++))
+done | sed -e 's/\.\S*//g' -e 's/-/ /g' -e 's/\<\w\w/\u&/g' # Remove .sh, replace - with space, and capitalize
 
-  echo -e "    ($(tput setaf 4) $KEY $(tput sgr0)) $(capitalize "${FILENAME_SPACE}")"
-
-  ((NUM++))
-
-done
-echo -e "    ($(tput setaf 4) ALL $(tput sgr0)) All themes"
+echo -e "  (${C4} ALL ${CR}) All themes"
 
 # |
 # | ::::::: Select Option
 # |
-echo -e "\nUsage : Enter Desired Themes Numbers ($(tput setaf 4)OPTIONS$(tput sgr0)) Separated By A Blank Space"
-echo -e "        Press $(tput setaf 4)ENTER$(tput sgr0) without options to Exit\n"
+echo -e "\nUsage : Enter Desired Themes Numbers (${C4}OPTIONS${CR}) Separated By A Blank Space"
+echo -e "        Press ${C4}ENTER${CR} without options to Exit\n"
 read -r -p 'Enter OPTION(S) : ' -a OPTION
 
 # Automagically generate options if user opts for all themes
@@ -455,7 +548,7 @@ if [[ "$TERMINAL" = "tilix" ]] && [[ ${#OPTION[@]} -gt 0 ]]; then
       exit 0
     }
 
-    scratchdir=$(mktemp -d -t tmp.XXXXXXXX)
+    scratchdir=$(mktemp -d -t gogh.tilix.XXXXXXXX)
     export scratchdir
   fi
 fi
@@ -473,9 +566,9 @@ export TERMINAL LOOP OPTLENGTH=${#OPTION[@]}
 # |
 
 declare color_dot_str
-for c in {0..15}; do
-  color_dot_str+="$(tput setaf $c)•$(tput sgr0)"
-  [[ $c == 7 ]] && color_dot_str+=" "
+for c in C{0..15}; do
+  color_dot_str+="${!c}•${CR}"
+  [[ $c == C7 ]] && color_dot_str+=" "
 done
 
 # Note:
@@ -500,7 +593,7 @@ for OP in "${OPTION[@]#0}"; do
     SET_THEME="${THEMES[((OP-1))]}"
     set_gogh "${SET_THEME}"
   else
-    echo -e "$(tput setaf 1) ~ INVALID OPTION! ~$(tput sgr0)"
+    echo -e "${C1} ~ INVALID OPTION! ~${CR}"
     exit 1
   fi
 done

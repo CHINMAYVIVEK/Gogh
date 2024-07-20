@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-export PROFILE_NAME="Everforest Dark"
+export PROFILE_NAME="Everforest Dark Soft"
 
-export COLOR_01="#4B565C"           # Black (Host)
+export COLOR_01="#3A464C"           # Black (Host)
 export COLOR_02="#E67E80"           # Red (Syntax string)
 export COLOR_03="#A7C080"           # Green (Command)
 export COLOR_04="#DBBC7F"           # Yellow (Command second)
@@ -20,10 +20,23 @@ export COLOR_14="#DF69BA"           # Bright Magenta
 export COLOR_15="#35A77C"           # Bright Cyan
 export COLOR_16="#DFDDC8"           # Bright White
 
-export BACKGROUND_COLOR="#2D353B"   # Background
+export BACKGROUND_COLOR="#333C43"   # Background
 export FOREGROUND_COLOR="#D3C6AA"   # Foreground (Text)
 
 export CURSOR_COLOR="#D3C6AA" # Cursor
+
+apply_theme() {
+    if [[ -e "${GOGH_APPLY_SCRIPT}" ]]; then
+      bash "${GOGH_APPLY_SCRIPT}"
+    elif [[ -e "${PARENT_PATH}/apply-colors.sh" ]]; then
+      bash "${PARENT_PATH}/apply-colors.sh"
+    elif [[ -e "${SCRIPT_PATH}/apply-colors.sh" ]]; then
+      bash "${SCRIPT_PATH}/apply-colors.sh"
+    else
+      printf '\n%s\n' "Error: Couldn't find apply-colors.sh" 1>&2
+      exit 1
+    fi
+}
 
 # | ===========================================================================
 # | Apply Colors
@@ -31,19 +44,8 @@ export CURSOR_COLOR="#D3C6AA" # Cursor
 SCRIPT_PATH="${SCRIPT_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 PARENT_PATH="$(dirname "${SCRIPT_PATH}")"
 
-# Allow developer to change url to forked url for easier testing
-# IMPORTANT: Make sure you export this variable if your main shell is not bash
-BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Gogh-Co/Gogh/master"}
-
-
-if [[ -e "${PARENT_PATH}/apply-colors.sh" ]]; then
-  bash "${PARENT_PATH}/apply-colors.sh"
+if [ -z "${GOGH_NONINTERACTIVE+no}" ]; then
+    apply_theme
 else
-  if [[ "$(uname)" = "Darwin" ]]; then
-    # OSX ships with curl and ancient bash
-    bash -c "$(curl -so- "${BASE_URL}/apply-colors.sh")"
-  else
-    # Linux ships with wget
-    bash -c "$(wget -qO- "${BASE_URL}/apply-colors.sh")"
-  fi
+    apply_theme 1>/dev/null
 fi

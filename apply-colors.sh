@@ -39,9 +39,34 @@ GLOBAL_VAR_CLEANUP() {
   unset PROFILE_NAME
 }
 
+SCRIPT_PATH="${SCRIPT_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+PARENT_PATH="$(dirname "${SCRIPT_PATH}")"
+
 # Note: Since all scripts gets invoked in a subshell the traps from the parent shell
 # will not get inherited. Hence traps defined in gogh.sh and print-themes.sh will still trigger
 trap 'GLOBAL_VAR_CLEANUP; trap - EXIT' EXIT HUP INT QUIT PIPE TERM
+
+print() {
+        format="${1:?missing value for print}"
+        shift
+        if [ -z "${GOGH_NONINTERACTIVE+no}" ]; then
+                printf "${format}" "${@}"
+        fi
+}
+
+prints() {
+        print '%s\n' "${@}"
+}
+
+printerr() {
+        format="${1:?missing value for printerr}"
+        shift
+        printf "${format}" "${@}" 1>&2
+}
+
+printserr() {
+        printerr '%s\n' "${@}"
+}
 
 # |
 # | Second test for TERMINAL in case user ran
@@ -79,9 +104,9 @@ fi
 case "${TERMINAL}" in
   pantheon-terminal|io.elementary.t* )
     if [[ -z "${GS}" ]]; then
-      printf '\n%s\n' "Error gsettings not found"
-      printf '%s\n'   "sudo apt install dconf?"
-      printf '%s\n\n' "or export GS=/path/to/gsettings"
+      printerr '\n%s\n' "Error gsettings not found"
+      printerr '%s\n'   "sudo apt install dconf?"
+      printerr '%s\n\n' "or export GS=/path/to/gsettings"
       exit 1
     fi
     ;;
@@ -89,8 +114,8 @@ case "${TERMINAL}" in
   mintty )
     CFGFILE="${HOME}/.minttyrc"
     if [[ ! -f "${CFGFILE}" ]]; then
-      printf '\n%s\n' "Warning: Couldn't find an existing configuration file, so one will be created for you."
-      printf '%s\n\n' "Warning: Are you really running Cygwin's mintty?"
+      print '\n%s\n' "Warning: Couldn't find an existing configuration file, so one will be created for you."
+      print '%s\n\n' "Warning: Are you really running Cygwin's mintty?"
       touch "${CFGFILE}"
     fi
     ;;
@@ -98,18 +123,18 @@ case "${TERMINAL}" in
   guake|tilix|mate-terminal|gnome-terminal* )
     case "${TERMINAL}" in
       guake|gnome-terminal* )
-        if [[ -z "${DCONF}" ]] && [[ -z "${GCONF}" ]]; then
-          printf '\n%s\n' "Error gconftool not found!"
-          printf '%s\n'   "sudo apt install gconftool?"
-          printf '%s\n\n' "or export GCONF=/path/to/gconftool-2/"
+        if [[ -z "${GS}" ]] && [[ -z "${DCONF}" ]] && [[ -z "${GCONF}" ]]; then
+          printerr '\n%s\n' "Error gconftool not found!"
+          printerr '%s\n'   "sudo apt install gconftool?"
+          printerr '%s\n\n' "or export GCONF=/path/to/gconftool-2/"
           exit 1
         fi
         ;;
     esac
     if [[ -z "${DCONF}" ]]; then
-      printf '\n%s\n' "Error dconf not found"
-      printf '%s\n'   "sudo apt install dconf?"
-      printf '%s\n\n' "or export DCONF=/path/to/dconf"
+      printerr '\n%s\n' "Error dconf not found"
+      printerr '%s\n'   "sudo apt install dconf?"
+      printerr '%s\n\n' "or export DCONF=/path/to/dconf"
       exit 1
     fi
     ;;
@@ -117,8 +142,34 @@ case "${TERMINAL}" in
   foot )
     CFGFILE="${HOME}/.config/foot/foot.ini"
     if [[ ! -f "${CFGFILE}" ]]; then
-      printf '\n%s\n' "Error: Couldn't find an existing configuration file."
-      exit 1
+      mkdir --parents "$(dirname "${CFGFILE}")"
+      # Create a new config for the user if not exist
+      # Extracted from foot's default config file
+      {
+        echo "[colors]"
+        echo "background=242424"
+        echo "foreground=ffffff"
+
+        echo "# Normal/regular colors (color palette 0-7)"
+        echo "regular0=242424  # black"
+        echo "regular1=f62b5a  # red"
+        echo "regular2=47b413  # green"
+        echo "regular3=e3c401  # yellow"
+        echo "regular4=24acd4  # blue"
+        echo "regular5=f2affd  # magenta"
+        echo "regular6=13c299  # cyan"
+        echo "regular7=e6e6e6  # white"
+
+        echo "# Bright colors (color palette 8-15)"
+        echo "bright0=616161   # bright black"
+        echo "bright1=ff4d51   # bright red"
+        echo "bright2=35d450   # bright green"
+        echo "bright3=e9e836   # bright yellow"
+        echo "bright4=5dc5f8   # bright blue"
+        echo "bright5=feabf2   # bright magenta"
+        echo "bright6=24dfc4   # bright cyan"
+        echo "bright7=ffffff   # bright white"
+      } > "${CFGFILE}"
     fi
     ;;
 
@@ -128,15 +179,27 @@ case "${TERMINAL}" in
     fi
     CFGFILE="${KITTY_CONFIG_DIRECTORY}/kitty.conf"
     if [[ ! -f "${CFGFILE}" ]]; then
-      printf '\n%s\n' "Error: Couldn't find an existing configuration file for Kitty."
+      printerr '\n%s\n' "Error: Couldn't find an existing configuration file for Kitty."
       exit 1
     fi
     ;;
 
+  kmscon )
+    if [[ -z "${KMSCON_CONFIG_DIRECTORY:-}" ]]; then
+      KMSCON_CONFIG_DIRECTORY="/etc/kmscon"
+      CFGFILE="${KMSCON_CONFIG_DIRECTORY}/kmscon.conf"
+    fi
+    if [[ ! -f "${CFGFILE}" ]]; then
+      printerr '\n%s\n' "Error: Couldn't find an existing configuration file for KMSCon."
+      exit 1
+    fi
+    ;;
+
+
   konsole )
     CFGFILE="${HOME}/.config/konsolerc"
     if [[ ! -f "${CFGFILE}" ]]; then
-      printf '\n%s\n' "Error: Couldn't find an existing configuration file for Konsole."
+      printerr '\n%s\n' "Error: Couldn't find an existing configuration file for Konsole."
       exit 1
     fi
     ;;
@@ -200,12 +263,32 @@ updateMinttyConfig () {
   sed -i -r -e "s/^${name}=.+/$(createMinttyEntry "${name}" "${color}")/g" "${config}"
 }
 
+createKmsconEntry () {
+  local  name="${1}"
+  local color="${2}"
+  set --
+  set -- $(hexRGBtoDecRGB "${color}")
+  R=${1}; shift; G=${1}; shift; B=${1}; shift
+
+  echo "${name}=${R}, ${G}, ${B}"
+}
+
+updateKmsconConfig () {
+  local config="${1}"
+  local  color="${2}"
+  local   name="${3}"
+
+  if ! grep -qe "^${name}=.+" "${config}"; then
+          echo "$(createKmsconEntry "${name}" "${color}")" >> "${config}"
+  fi
+}
+
 updateFootConfig () {
   local config="${1}"
   local  color="${2}"
   local   name="${3}"
 
-  sed -i -r -e "s/^${name}=.+/${name}=${color/\#/}/g" "${config}"
+  sed -i -r -e "s/^${name}=.*/${name}=${color/\#/}/g" "${config}"
 }
 
 createKonsoleEntry () {
@@ -355,7 +438,7 @@ if [[ "${COLORTERM:-}" == "truecolor" ]] || [[ "${COLORTERM:-}" == "24bit" ]]; t
       [[ ${GOGH_DRY_RUN:-0} -eq 1 ]] && export "DEMO_COLOR_$c=\033[38;2;${1};${2};${3}m"
       [[ "$c" == "08" ]] && color_str+="\n" # new line
     done
-    printf '\n%b\n\n\n' "${color_str}"
+    print '\n%b\n\n\n' "${color_str}"
     unset color_str
   }
 else
@@ -366,7 +449,7 @@ else
       color_str+="$(tput setaf $c)█████$(tput sgr0)"
       [[ $c == 7 ]] && color_str+="\n" # new line
     done
-    printf '\n%b\n\n' "${color_str}"
+    print '\n%b\n\n' "${color_str}"
     unset color_str
   }
 fi
@@ -410,7 +493,7 @@ apply_cygwin() {
   # | Applying values on mintty (cygwin)
   # | ===========================================
 
-  echo "Patching mintty configuration file (${CFGFILE}) with new colors..."
+  prints "Patching mintty configuration file (${CFGFILE}) with new colors..."
 
   updateMinttyConfig "$CFGFILE" "$COLOR_01"         "Black"
   updateMinttyConfig "$CFGFILE" "$COLOR_02"         "Red"
@@ -434,7 +517,7 @@ apply_cygwin() {
   updateMinttyConfig "$CFGFILE" "$FOREGROUND_COLOR" "Foregroundcolor"
   updateMinttyConfig "$CFGFILE" "$CURSOR_COLOR"     "Cursorcolor"
 
-  echo "Done - please reopen your Cygwin terminal to see the changes"
+  prints "Done - please reopen your Cygwin terminal to see the changes"
 }
 
 apply_alacritty() {
@@ -476,24 +559,41 @@ apply_alacritty() {
     }\
   }"
 
-  SCRIPT_PATH="${SCRIPT_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-  PARENT_PATH="$(dirname "${SCRIPT_PATH}")"
-
-  # Allow developer to change url to forked url for easier testing
-  # IMPORTANT: Make sure you export this variable if your main shell is not bash
-  BASE_URL=${BASE_URL:-"https://raw.githubusercontent.com/Gogh-Co/Gogh/master"}
-
-
-  if [[ -e "${SCRIPT_PATH}/apply-alacritty.py" ]]; then
+  if [[ -e "${GOGH_ALACRITTY_SCRIPT}" ]]; then
+    python3 "${GOGH_ALACRITTY_SCRIPT}" "$json_str"
+  elif [[ -e "${SCRIPT_PATH}/apply-alacritty.py" ]]; then
     python3 "${SCRIPT_PATH}/apply-alacritty.py" "$json_str"
   else
-    if [[ "$(uname)" = "Darwin" ]]; then
-      # OSX ships with curl and ancient bash
-      python3 -c "$(curl -so- "${BASE_URL}/apply-alacritty.py")" "$json_str"
-    else
-      # Linux ships with wget
-      python3 -c "$(wget -qO- "${BASE_URL}/apply-alacritty.py")" "$json_str"
-    fi
+    printerr '\n%s\n' "Error: Couldn't find apply-alacritty.py file."
+    exit 1
+  fi
+}
+
+apply_terminator() {
+  # |
+  # | Applying values on Terminator
+  # | ===========================================
+
+  json_str="\
+  { \
+    \"colors\": \
+    {\
+      \"primary\":\
+      {\
+        \"background\": \"$BACKGROUND_COLOR\",\
+        \"foreground\": \"$FOREGROUND_COLOR\"\
+      },\
+      \"pallete\":\"${COLOR_01}:${COLOR_02}:${COLOR_03}:${COLOR_04}:${COLOR_05}:${COLOR_06}:${COLOR_07}:${COLOR_08}:${COLOR_09}:${COLOR_10}:${COLOR_11}:${COLOR_12}:${COLOR_13}:${COLOR_14}:${COLOR_15}:${COLOR_16}\"
+    }\
+  }"
+
+  if [[ -e "${GOGH_TERMINATOR_SCRIPT}" ]]; then
+   python3 "${GOGH_TERMINATOR_SCRIPT}" "$json_str"
+  elif [[ -e "${SCRIPT_PATH}/apply-terminator.py" ]]; then
+    python3 "${SCRIPT_PATH}/apply-terminator.py" "$json_str"
+  else
+    printerr '\n%s\n' "Error: Couldn't find apply-terminator.py."
+    exit 1
   fi
 
 }
@@ -503,7 +603,7 @@ apply_foot() {
   # | Applying values on foot
   # | ===========================================
 
-  echo "Patching foot configuration file (${CFGFILE}) with new colors..."
+  prints "Patching foot configuration file (${CFGFILE}) with new colors..."
 
   updateFootConfig "$CFGFILE" "$COLOR_01" "regular0"
   updateFootConfig "$CFGFILE" "$COLOR_02" "regular1"
@@ -526,8 +626,7 @@ apply_foot() {
   updateFootConfig "$CFGFILE" "$BACKGROUND_COLOR" "background"
   updateFootConfig "$CFGFILE" "$FOREGROUND_COLOR" "foreground"
 
-  echo "Done - please reopen your foot terminal to see the changes"
-
+  prints "Done - please reopen your foot terminal to see the changes"
 }
 
 apply_kitty() {
@@ -535,7 +634,7 @@ apply_kitty() {
   # | Applying values on Kitty
   # | ===========================================
 
-  echo "Patching kitty configuration file ($CFGFILE) with include of color theme file..."
+  prints "Patching kitty configuration file ($CFGFILE) with include of color theme file..."
 
   COLOR_FILE="colors.conf"
 
@@ -547,7 +646,7 @@ apply_kitty() {
 
   CFGFILE="${KITTY_CONFIG_DIRECTORY}/$COLOR_FILE"
 
-  echo "Updating color theme file ($CFGFILE) with theme..."
+  pirnts "Updating color theme file ($CFGFILE) with theme..."
 
   rm -f "$CFGFILE"
 
@@ -579,8 +678,38 @@ apply_kitty() {
 
   echo "cursor $CURSOR_COLOR" >> "$CFGFILE"
   
-  echo "Done - signaling kitty to reload"
-  killall -u ${USER} -SIGUSR1 kitty || pkill --uid $(id -u) -SIGUSR1 kitty || echo "Reload failed. Please reopen your kitty terminal to see the changes."
+  prints "Done - signaling kitty to reload"
+  killall -u ${USER} -SIGUSR1 kitty || pkill --uid $(id -u) -SIGUSR1 kitty || prints "Reload failed. Please reopen your kitty terminal to see the changes."
+}
+
+apply_kmscon() {
+  # |
+  # | Applying values on kmscon | ===========================================
+
+  prints "Patching kmscon configuration file (${CFGFILE}) with new colors..."
+
+  updateKmsconConfig "$CFGFILE" "$COLOR_01"         "palette-black"
+  updateKmsconConfig "$CFGFILE" "$COLOR_02"         "palette-red"
+  updateKmsconConfig "$CFGFILE" "$COLOR_03"         "palette-green"
+  updateKmsconConfig "$CFGFILE" "$COLOR_04"         "palette-yellow"
+  updateKmsconConfig "$CFGFILE" "$COLOR_05"         "palette-blue"
+  updateKmsconConfig "$CFGFILE" "$COLOR_06"         "palette-magenta"
+  updateKmsconConfig "$CFGFILE" "$COLOR_07"         "palette-cyan"
+  updateKmsconConfig "$CFGFILE" "$COLOR_08"         "palette-dark-grey"
+
+  updateKmsconConfig "$CFGFILE" "$COLOR_09"         "palette-light-grey"
+  updateKmsconConfig "$CFGFILE" "$COLOR_10"         "palette-light-red"
+  updateKmsconConfig "$CFGFILE" "$COLOR_11"         "palette-light-green"
+  updateKmsconConfig "$CFGFILE" "$COLOR_12"         "palette-light-yellow"
+  updateKmsconConfig "$CFGFILE" "$COLOR_13"         "palette-light-blue"
+  updateKmsconConfig "$CFGFILE" "$COLOR_14"         "palette-light-magenta"
+  updateKmsconConfig "$CFGFILE" "$COLOR_15"         "palette-light-cyan"
+  updateKmsconConfig "$CFGFILE" "$COLOR_16"         "palette-white"
+
+  updateKmsconConfig "$CFGFILE" "$BACKGROUND_COLOR" "palette-background"
+  updateKmsconConfig "$CFGFILE" "$FOREGROUND_COLOR" "palette-foreground"
+
+  prints "Done - please restart your kmscon vt to see changes"
 }
 
 apply_konsole() {
@@ -596,12 +725,12 @@ apply_konsole() {
   if [[ -z "${XDG_DATA_HOME:-}" ]]; then
     KDIR="${HOME}/.local/share/konsole"
   else
-	KDIR="${XDG_DATA_HOME}/konsole"
+        KDIR="${XDG_DATA_HOME}/konsole"
   fi
 
   KPROFILE="${KDIR}/${PROFILE_NAME}.profile"
   if [[ -f "${KPROFILE}" ]]; then
-      echo "Profile ${PROFILE_NAME} already exists in Konsole confiuration (${KONSOLE_DIR}); Skipping ..."
+      prints "Profile ${PROFILE_NAME} already exists in Konsole confiuration (${KONSOLE_DIR}); Skipping ..."
       exit 0
   fi
 
@@ -611,7 +740,7 @@ apply_konsole() {
 
   KCOLORSCHEME="${KDIR}/${PROFILE_NAME}.colorscheme"
   if [[ -f "${KCOLORSCHEME}" ]]; then
-      echo "Color Scheme ${PROFILE_NAME} already exists in Konsole confiuration (${KONSOLE_DIR}); Skipping ..."
+      prints "Color Scheme ${PROFILE_NAME} already exists in Konsole confiuration (${KONSOLE_DIR}); Skipping ..."
       exit 0
   fi
 
@@ -687,7 +816,7 @@ apply_gtk() {
   profile_hashes=($(${CONFTOOL} "${PROFILE_LIST_KEY}" | tr "[]'," " "))
   for profile in "${profile_hashes[@]}"; do
     if [[ "$(${CONFTOOL} "${BASE_DIR}${profile}/${VISIBLE_NAME}" | tr -d "'")" == "${PROFILE_NAME}" ]]; then
-      printf '%s\n' "Profile already exists" "Skipping..."
+      print '%s\n' "Profile already exists" "Skipping..."
       exit 0
     fi
   done
@@ -706,34 +835,33 @@ apply_gtk() {
     if [[ -z "$(${DCONF} list ${BASE_DIR%:})" ]]; then
       # Provide a user friendly error text if no saved profile exists, otherwise it will display "Error gconftool not found!"
       #  it could happen on a newly installed system. (happened on CentOS 7)
-      printf '%s\n'                                                                                             \
-      "Error, no saved profiles found!"                                                                         \
+      printserr "Error, no saved profiles found!" \
       "Possible fix, new a profile (Terminal > Edit > Preferences > Profiles > New, then Close) and try again." \
       "You can safely delete the created profile after the installation."
       exit 1
     fi
 
-    BACKGROUND_COLOR=$(gnome_color "$BACKGROUND_COLOR")
-    FOREGROUND_COLOR=$(gnome_color "$FOREGROUND_COLOR")
-    CURSOR_COLOR=$(gnome_color "$CURSOR_COLOR")
+    BACKGROUND_COLOR=$(gnome_color   "$BACKGROUND_COLOR")
+    FOREGROUND_COLOR=$(gnome_color   "$FOREGROUND_COLOR")
+    CURSOR_COLOR=$(gnome_color       "$CURSOR_COLOR")
     HIGHLIGHT_BG_COLOR=$(gnome_color "$HIGHLIGHT_BG_COLOR")
     HIGHLIGHT_FG_COLOR=$(gnome_color "$HIGHLIGHT_FG_COLOR")
-    COLOR_01=$(gnome_color         "$COLOR_01")
-    COLOR_02=$(gnome_color         "$COLOR_02")
-    COLOR_03=$(gnome_color         "$COLOR_03")
-    COLOR_04=$(gnome_color         "$COLOR_04")
-    COLOR_05=$(gnome_color         "$COLOR_05")
-    COLOR_06=$(gnome_color         "$COLOR_06")
-    COLOR_07=$(gnome_color         "$COLOR_07")
-    COLOR_08=$(gnome_color         "$COLOR_08")
-    COLOR_09=$(gnome_color         "$COLOR_09")
-    COLOR_10=$(gnome_color         "$COLOR_10")
-    COLOR_11=$(gnome_color         "$COLOR_11")
-    COLOR_12=$(gnome_color         "$COLOR_12")
-    COLOR_13=$(gnome_color         "$COLOR_13")
-    COLOR_14=$(gnome_color         "$COLOR_14")
-    COLOR_15=$(gnome_color         "$COLOR_15")
-    COLOR_16=$(gnome_color         "$COLOR_16")
+    COLOR_01=$(gnome_color           "$COLOR_01")
+    COLOR_02=$(gnome_color           "$COLOR_02")
+    COLOR_03=$(gnome_color           "$COLOR_03")
+    COLOR_04=$(gnome_color           "$COLOR_04")
+    COLOR_05=$(gnome_color           "$COLOR_05")
+    COLOR_06=$(gnome_color           "$COLOR_06")
+    COLOR_07=$(gnome_color           "$COLOR_07")
+    COLOR_08=$(gnome_color           "$COLOR_08")
+    COLOR_09=$(gnome_color           "$COLOR_09")
+    COLOR_10=$(gnome_color           "$COLOR_10")
+    COLOR_11=$(gnome_color           "$COLOR_11")
+    COLOR_12=$(gnome_color           "$COLOR_12")
+    COLOR_13=$(gnome_color           "$COLOR_13")
+    COLOR_14=$(gnome_color           "$COLOR_14")
+    COLOR_15=$(gnome_color           "$COLOR_15")
+    COLOR_16=$(gnome_color           "$COLOR_16")
 
     # copy existing settings from default profile
     $DCONF dump               "${DEFAULT_KEY}/" | $DCONF load "${PROFILE_KEY}/"
@@ -760,12 +888,19 @@ apply_guake() {
   # | ===========================================
 
   local legacy="${1:-}"
-  PROFILE_KEY="/apps/guake/style/font"
 
   if [[ -z "${legacy}" ]]; then
-    dset palette              "'${COLOR_01}:${COLOR_02}:${COLOR_03}:${COLOR_04}:${COLOR_05}:${COLOR_06}:${COLOR_07}:${COLOR_08}:${COLOR_09}:${COLOR_10}:${COLOR_11}:${COLOR_12}:${COLOR_13}:${COLOR_14}:${COLOR_15}:${COLOR_16}:${FOREGROUND_COLOR}:${BACKGROUND_COLOR}'"
-    dset palette-name         "'${PROFILE_NAME}'"
-    dset allow-bold 'true'
+    if ${GS} list-children guake &>/dev/null; then
+      PROFILE_KEY="guake.style.font"
+      gset palette              "'${COLOR_01}:${COLOR_02}:${COLOR_03}:${COLOR_04}:${COLOR_05}:${COLOR_06}:${COLOR_07}:${COLOR_08}:${COLOR_09}:${COLOR_10}:${COLOR_11}:${COLOR_12}:${COLOR_13}:${COLOR_14}:${COLOR_15}:${COLOR_16}:${FOREGROUND_COLOR}:${BACKGROUND_COLOR}'"
+      gset palette-name         "'${PROFILE_NAME}'"
+      gset allow-bold 'true'
+    else
+      PROFILE_KEY="/apps/guake/style/font"
+      dset palette              "'${COLOR_01}:${COLOR_02}:${COLOR_03}:${COLOR_04}:${COLOR_05}:${COLOR_06}:${COLOR_07}:${COLOR_08}:${COLOR_09}:${COLOR_10}:${COLOR_11}:${COLOR_12}:${COLOR_13}:${COLOR_14}:${COLOR_15}:${COLOR_16}:${FOREGROUND_COLOR}:${BACKGROUND_COLOR}'"
+      dset palette-name         "'${PROFILE_NAME}'"
+      dset allow-bold 'true'
+    fi
   else
     gcset string color        "${FOREGROUND_COLOR}"
     gcset string palette      "${COLOR_01}:${COLOR_02}:${COLOR_03}:${COLOR_04}:${COLOR_05}:${COLOR_06}:${COLOR_07}:${COLOR_08}:${COLOR_09}:${COLOR_10}:${COLOR_11}:${COLOR_12}:${COLOR_13}:${COLOR_14}:${COLOR_15}:${COLOR_16}"
@@ -793,7 +928,13 @@ appy_tilixschemes() {
     if ((LOOP == OPTLENGTH)); then
       cp -f  ${scratchdir}/* "$HOME/.config/tilix/schemes/"
       rm -rf "${scratchdir}"
-      read -r -p "All done - apply new theme? [y/N] " -n 1 TILIX_RES
+      if [ -z "${GOGH_NONINTERACTIVE+no}" ] && [ -z "${GOGH_USE_NEW_THEME+no}" ]; then
+              read -r -p "All done - apply new theme? [y/N] " -n 1 TILIX_RES
+      elif [ ! -z "${GOGH_USE_NEW_THEME+yes}" ]; then
+              TILIX_RES="Y"
+      else
+              TILIX_RES="N"
+      fi
       if [[ ${TILIX_RES::1} =~ ^(y|Y)$ ]]; then
         PROFILE_KEY="${BASE_DIR}${DEFAULT_SLUG}"
         PROFILE_NAME="$(${DCONF} read ${PROFILE_KEY}/visible-name | tr -d \')"
@@ -815,12 +956,12 @@ apply_xfce4-terminal() {
     CONFFILE="${HOME}/.config/xfce4/terminal/terminalrc"
 
     if [[ ! (-w "${CONFFILE}") ]]; then
-        if [[ -r "${XDG_CONFIG_DIRS%%:*}/Terminal/terminalrc" ]]; then
-            cp "${XDG_CONFIG_DIRS%%:*}/Terminal/terminalrc" ${CONFFILE}
-        else
-            echo "ERROR: config file not present or not writable!"
-            exit 1
-        fi
+      if [[ -r "${XDG_CONFIG_DIRS%%:*}/Terminal/terminalrc" ]]; then
+        cp "${XDG_CONFIG_DIRS%%:*}/Terminal/terminalrc" ${CONFFILE}
+      else
+        [[ -d "$(dirname "${CONFFILE}")" ]] || mkdir --parents "$(dirname "${CONFFILE}")"
+        touch "${CONFFILE}" || { printserr "Error: xfce4-terminal config file not writeable: ${CONFFILE}"; exit 1; }
+      fi
     fi
 
     [[ -d "${SCHEMEDIR}" ]] || mkdir -p "${SCHEMEDIR}"
@@ -852,7 +993,13 @@ apply_xfce4-terminal() {
     # any of the themes in there. The color settings need to
     # be written there directly.
     if ((LOOP == OPTLENGTH)); then
-        read -r -p "All done - apply new theme? [y/N] " -n 1 XFCE4_APPLY_CURR_THEME
+        if [ -z "${GOGH_NONINTERACTIVE+no}" ] && [ -z "${GOGH_USE_NEW_THEME+no}" ]; then
+            read -r -p "All done - apply new theme? [y/N] " -n 1 XFCE4_APPLY_CURR_THEME
+        elif [ ! -z "${GOGH_USE_NEW_THEME+yes}" ]; then
+            XFCE4_APPLY_CURR_THEME="Y"
+        else
+            XFCE4_APPLY_CURR_THEME="N"
+        fi
         if [[ ${XFCE4_APPLY_CURR_THEME::1} =~ ^(y|Y)$ ]]; then
             if grep -q "^ColorPalette=" "${CONFFILE}"; then
                 sed -i -r -e "s/^ColorPalette=.*/${L_COLORPALETTE}/" "${CONFFILE}"
@@ -905,17 +1052,25 @@ apply_linux_vt () {
   fi
   mkdir -p "${theme_dir}"
 
-  local file_name=${theme_dir}/${PROFILE_NAME}
-  if [[ ! -f ${file_name} ]]; then
+  local file_name="${theme_dir}"/"${PROFILE_NAME}"
+  if [[ ! -f "${file_name}" ]]; then
     touch "${file_name}"
-	  for c in $(seq -s " " -w 16); do
-	    local color=COLOR_${c}
-	    echo "${!color}" >> "${file_name}"
-	  done
+          for c in $(seq -s " " -w 16); do
+            local color=COLOR_${c}
+            echo "${!color}" >> "${file_name}"
+          done
+    # apply the theme if setvtrgb exists
+    if command -v setvtrgb >/dev/null &2>&1; then
+            setvtrgb "${file_name}"
+            echo setvtrgb "${file_name}"
+            gogh_colors # preview
+    fi
   fi
 
   if command -v update-alternatives >/dev/null &2>&1 && [[ "${USER}" = "root" ]]; then
     update-alternatives --install /etc/vtrgb vtrgb "${file_name}" 30
+    update-alternatives --set vtrgb "${file_name}"
+    setvtrgb /etc/vtrgb
   fi
 }
 
@@ -940,7 +1095,7 @@ case "${TERMINAL}" in
     ;;
 
   guake )
-    if [[ -n "$(${DCONF} list /apps/guake/style/)" ]]; then
+    if ${GS} list-children guake &>/dev/null || [[ -n "$(${DCONF} list /apps/guake/style/)" ]]; then
       apply_guake
     else
       apply_guake legacy
@@ -1007,12 +1162,20 @@ case "${TERMINAL}" in
     apply_alacritty
     ;;
 
+  terminator )
+    apply_terminator
+  ;;
+
   foot )
     apply_foot
     ;;
 
   kitty )
     apply_kitty
+    ;;
+
+  kmscon )
+    apply_kmscon
     ;;
 
   konsole )
@@ -1024,25 +1187,29 @@ case "${TERMINAL}" in
     ;;
 
   * )
-    printf '%s\n'                                             \
-    "Unsupported terminal!"                                   \
+    printserr "Unsupported terminal!"                         \
     ""                                                        \
     "Supported terminals:"                                    \
-    "   mintty and deriviates"                                \
+    "   alacritty"                                            \
+    "   mintty (and deriviates)"                              \
     "   guake"                                                \
-    "   iTerm2"                                               \
-    "   elementary terminal (pantheon/elementary)"            \
+    "   iTerm.app (iTerm2)"                                   \
+    "   pantheon-terminal"                                    \
+    "   io.elementary.t* (elementary terminal)"               \
     "   mate-terminal"                                        \
     "   gnome-terminal"                                       \
     "   tilix"                                                \
     "   xfce4-terminal"                                       \
     "   foot"                                                 \
     "   kitty"                                                \
+    "   kmscon"                                               \
     "   konsole"                                              \
-    "   linux"                                                \
+    "   linux (linux vt)"                                     \
+    "   terminator"                                           \
     ""                                                        \
     "If you believe you have received this message in error," \
-    "try manually setting \`TERMINAL', hint: ps -h -o comm -p \$PPID"
+    "try manually setting env \`TERMINAL' with the value above." \
+    "hint: ps -h -o comm -p \$PPID"
     exit 1
     ;;
 
